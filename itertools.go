@@ -115,3 +115,48 @@ func Chain[V any](seq1, seq2 iter.Seq[V]) iter.Seq[V] {
 		}
 	}
 }
+
+// WithFunc returns an iterator yielding values obtained by indefinitely calling f.
+func WithFunc[V any](f func() V) iter.Seq[V] {
+	return func(yield func(V) bool) {
+		for {
+			if !yield(f()) {
+				return
+			}
+		}
+	}
+}
+
+// Repeat returns an iterator that will indefinitely yield v.
+func Repeat[V any](v V) iter.Seq[V] {
+	return WithFunc(func() V { return v })
+}
+
+// RepeatN works like Repeat, but returns an iterator that stops after yielding n values.
+func RepeatN[V any](v V, n uint) iter.Seq[V] {
+	return Take(Repeat(v), n)
+}
+
+// Cycle returns an iterator that cycles through seq indefinitely.
+// Values from seq are progressively accumulated into a slice during the first cycle,
+// and reused for the next cycles.
+func Cycle[V any](seq iter.Seq[V]) iter.Seq[V] {
+	return func(yield func(V) bool) {
+		var vs []V
+
+		for v := range seq {
+			if !yield(v) {
+				return
+			}
+			vs = append(vs, v)
+		}
+
+		for len(vs) > 0 {
+			for _, v := range vs {
+				if !yield(v) {
+					return
+				}
+			}
+		}
+	}
+}
