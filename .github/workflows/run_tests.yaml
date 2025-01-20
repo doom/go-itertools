@@ -1,0 +1,46 @@
+name: Run all tests
+
+on:
+  workflow_dispatch:
+
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/run_tests.yaml
+      - '**.go'
+      - go.mod
+      - go.sum
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: ./go.mod
+          check-latest: true
+
+      - name: Setup gotestfmt
+        uses: GoTestTools/gotestfmt-action@v2
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.62.2
+
+      - name: Run govulncheck
+        run: |
+          set -euo pipefail
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          govulncheck ./...
+
+      - name: Run tests
+        run: |
+          set -euo pipefail
+          go test -v -json -race -cover ./... -coverprofile=coverage.txt -covermode=atomic -coverpkg=./... 2>&1 | gotestfmt
+        shell: bash
