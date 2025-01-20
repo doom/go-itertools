@@ -160,3 +160,44 @@ func Cycle[V any](seq iter.Seq[V]) iter.Seq[V] {
 		}
 	}
 }
+
+// Flatten returns an iterator that yields each value from a nested iterator.
+func Flatten[V any](seq iter.Seq[iter.Seq[V]]) iter.Seq[V] {
+	return func(yield func(V) bool) {
+		for s := range seq {
+			for v := range s {
+				if !yield(v) {
+					return
+				}
+			}
+		}
+	}
+}
+
+// All reports whether all values yielded by seq pass p.
+// All is short-circuiting, i.e. it will stop when it reaches a value that does not pass p.
+func All[V any](seq iter.Seq[V], p func(V) bool) bool {
+	for v := range seq {
+		if !p(v) {
+			return false
+		}
+	}
+	return true
+}
+
+// Any reports whether any value yielded by seq passes p.
+// Any is short-circuiting, i.e. it will stop when it reaches a value that passes p.
+func Any[V any](seq iter.Seq[V], p func(V) bool) bool {
+	for v := range seq {
+		if p(v) {
+			return true
+		}
+	}
+	return false
+}
+
+// None reports whether no value yielded by seq passes p.
+// None is short-circuiting, i.e. it will stop when it reaches a value that passes p.
+func None[V any](seq iter.Seq[V], p func(V) bool) bool {
+	return !Any(seq, p)
+}
