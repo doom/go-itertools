@@ -153,3 +153,46 @@ func TestItertools_Cycle(t *testing.T) {
 	is = itertools.Cycle(Empty[int]())
 	assert.Equal(t, []int(nil), slices.Collect(itertools.Take(is, 5)))
 }
+
+func TestItertools_Flatten(t *testing.T) {
+	is := itertools.Flatten(itertools.Map(IntRange(0, 3), func(v int) iter.Seq[int] {
+		return itertools.RepeatN(v, 2)
+	}))
+	assert.Equal(t, []int{0, 0, 1, 1, 2, 2}, slices.Collect(is))
+
+	is = itertools.Flatten(Empty[iter.Seq[int]]())
+	assert.Equal(t, []int(nil), slices.Collect(is))
+}
+
+func TestItertools_All(t *testing.T) {
+	a := itertools.All(IntRange(0, 3), func(v int) bool { return v >= 0 })
+	assert.Equal(t, true, a)
+
+	a = itertools.All(IntRange(0, 3), func(v int) bool { return v > 1 })
+	assert.Equal(t, false, a)
+
+	a = itertools.All(IntRange(0, 3), func(v int) bool { return v < 2 })
+	assert.Equal(t, false, a)
+}
+
+func TestItertools_Any(t *testing.T) {
+	a := itertools.Any(IntRange(0, 3), func(v int) bool { return v >= 0 })
+	assert.Equal(t, true, a)
+
+	a = itertools.Any(IntRange(0, 3), func(v int) bool { return v > 2 })
+	assert.Equal(t, false, a)
+
+	a = itertools.Any(IntRange(0, 3), func(v int) bool { return v%2 == 1 })
+	assert.Equal(t, true, a)
+}
+
+func TestItertools_None(t *testing.T) {
+	a := itertools.None(IntRange(0, 3), func(v int) bool { return v < 0 })
+	assert.Equal(t, true, a)
+
+	a = itertools.None(IntRange(0, 3), func(v int) bool { return v < 2 })
+	assert.Equal(t, false, a)
+
+	a = itertools.None(IntRange(0, 3), func(v int) bool { return v%2 == 1 })
+	assert.Equal(t, false, a)
+}
