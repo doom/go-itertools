@@ -123,3 +123,33 @@ func TestItertools_Chain(t *testing.T) {
 	is = itertools.Chain(IntRange(0, 5), IntRange(5, 10))
 	assert.Equal(t, []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, slices.Collect(is))
 }
+
+func TestItertools_WithFunc(t *testing.T) {
+	is := itertools.WithFunc(func() int { return 1 })
+	assert.Equal(t, []int{1, 1, 1, 1, 1}, slices.Collect(itertools.Take(is, 5)))
+
+	i := -1
+	is = itertools.WithFunc(func() int { i++; return i })
+	assert.Equal(t, []int{0, 1, 2, 3, 4}, slices.Collect(itertools.Take(is, 5)))
+}
+
+func TestItertools_Repeat(t *testing.T) {
+	ss := itertools.Repeat("a")
+	assert.Equal(t, []string{"a", "a", "a", "a", "a"}, slices.Collect(itertools.Take(ss, 5)))
+}
+
+func TestItertools_RepeatN(t *testing.T) {
+	ss := itertools.RepeatN("a", 5)
+	assert.Equal(t, []string{"a", "a", "a", "a", "a"}, slices.Collect(ss))
+
+	ss = itertools.RepeatN("a", 0)
+	assert.Equal(t, []string(nil), slices.Collect(ss))
+}
+
+func TestItertools_Cycle(t *testing.T) {
+	is := itertools.Cycle(IntRange(0, 2))
+	assert.Equal(t, []int{0, 1, 0, 1, 0}, slices.Collect(itertools.Take(is, 5)))
+
+	is = itertools.Cycle(Empty[int]())
+	assert.Equal(t, []int(nil), slices.Collect(itertools.Take(is, 5)))
+}
