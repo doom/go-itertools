@@ -2,6 +2,7 @@
 package itertools
 
 import (
+	"cmp"
 	"iter"
 )
 
@@ -200,4 +201,60 @@ func Any[V any](seq iter.Seq[V], p func(V) bool) bool {
 // None is short-circuiting, i.e. it will stop when it reaches a value that passes p.
 func None[V any](seq iter.Seq[V], p func(V) bool) bool {
 	return !Any(seq, p)
+}
+
+// MinFunc returns the minimum value yielded by seq, comparing values using cmp.
+// If no values are yielded by seq, a zero-value is returned and the second return value is false.
+// If there is more than one minimal element according to the cmp function, MinFunc returns the first one.
+func MinFunc[V any](seq iter.Seq[V], cmp func(V, V) int) (V, bool) {
+	next, stop := iter.Pull(seq)
+	defer stop()
+
+	minV, ok := next()
+	if !ok {
+		return minV, false
+	}
+
+	for v, ok := next(); ok; v, ok = next() {
+		if cmp(v, minV) < 0 {
+			minV = v
+		}
+	}
+
+	return minV, true
+}
+
+// Min returns the minimum value yielded by seq.
+// If no values are yielded by seq, a zero-value is returned and the second return value is false.
+// If there is more than one minimal element according to the cmp function, Min returns the first one.
+func Min[V cmp.Ordered](seq iter.Seq[V]) (V, bool) {
+	return MinFunc(seq, cmp.Compare)
+}
+
+// MaxFunc returns the minimum value yielded by seq, comparing values using cmp.
+// If no values are yielded by seq, a zero-value is returned and the second return value is false.
+// If there is more than one minimal element according to the cmp function, MaxFunc returns the first one.
+func MaxFunc[V any](seq iter.Seq[V], cmp func(V, V) int) (V, bool) {
+	next, stop := iter.Pull(seq)
+	defer stop()
+
+	maxV, ok := next()
+	if !ok {
+		return maxV, false
+	}
+
+	for v, ok := next(); ok; v, ok = next() {
+		if cmp(v, maxV) > 0 {
+			maxV = v
+		}
+	}
+
+	return maxV, true
+}
+
+// Max returns the minimum value yielded by seq.
+// If no values are yielded by seq, a zero-value is returned and the second return value is false.
+// If there is more than one minimal element according to the cmp function, Max returns the first one.
+func Max[V cmp.Ordered](seq iter.Seq[V]) (V, bool) {
+	return MaxFunc(seq, cmp.Compare)
 }

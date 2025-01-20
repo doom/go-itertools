@@ -4,6 +4,7 @@ import (
 	"iter"
 	"slices"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -195,4 +196,48 @@ func TestItertools_None(t *testing.T) {
 
 	a = itertools.None(IntRange(0, 3), func(v int) bool { return v%2 == 1 })
 	assert.Equal(t, false, a)
+}
+
+func TestItertools_Min(t *testing.T) {
+	a, ok := itertools.Min(IntRange(0, 3))
+	assert.Equal(t, true, ok)
+	assert.Equal(t, 0, a)
+
+	a, ok = itertools.Min(itertools.FromSlice([]int{4, 3, 2, -1, 0}))
+	assert.Equal(t, true, ok)
+	assert.Equal(t, -1, a)
+
+	_, ok = itertools.Min(Empty[int]())
+	assert.Equal(t, false, ok)
+}
+
+func TestItertools_MinFunc(t *testing.T) {
+	a, ok := itertools.MinFunc(itertools.FromSlice([]string{"ghi", "abc", "def"}), strings.Compare)
+	assert.Equal(t, true, ok)
+	assert.Equal(t, "abc", a)
+
+	_, ok = itertools.MinFunc(Empty[string](), strings.Compare)
+	assert.Equal(t, false, ok)
+}
+
+func TestItertools_Max(t *testing.T) {
+	a, ok := itertools.Max(IntRange(0, 3))
+	assert.Equal(t, true, ok)
+	assert.Equal(t, 2, a)
+
+	a, ok = itertools.Max(itertools.FromSlice([]int{4, 3, 2, 5, 0}))
+	assert.Equal(t, true, ok)
+	assert.Equal(t, 5, a)
+
+	_, ok = itertools.Max(Empty[int]())
+	assert.Equal(t, false, ok)
+}
+
+func TestItertools_MaxFunc(t *testing.T) {
+	a, ok := itertools.MaxFunc(itertools.FromSlice([]string{"abc", "ghi", "def"}), strings.Compare)
+	assert.Equal(t, true, ok)
+	assert.Equal(t, "ghi", a)
+
+	_, ok = itertools.MaxFunc(Empty[string](), strings.Compare)
+	assert.Equal(t, false, ok)
 }
