@@ -17,6 +17,10 @@ func Empty[V any]() iter.Seq[V] {
 	return func(yield func(V) bool) {}
 }
 
+func Empty2[V, W any]() iter.Seq2[V, W] {
+	return func(yield func(V, W) bool) {}
+}
+
 func IntRange(a, b int) iter.Seq[int] {
 	return func(yield func(int) bool) {
 		for ; a < b; a++ {
@@ -41,6 +45,22 @@ func TestItertools_Map(t *testing.T) {
 
 	ss = itertools.Map(Empty[int](), strconv.Itoa)
 	assert.Equal(t, []string(nil), slices.Collect(ss))
+}
+
+func TestItertools_MapFromSeq2(t *testing.T) {
+	is := itertools.MapFromSeq2(itertools.FromMap(map[int]int{0: 1, 1: 2, 2: 3, 3: 4}), func(a, b int) int { return a + b })
+	assert.ElementsMatch(t, []int{0 + 1, 1 + 2, 2 + 3, 3 + 4}, slices.Collect(is))
+
+	is = itertools.MapFromSeq2(Empty2[int, int](), func(a, b int) int { return a + b })
+	assert.ElementsMatch(t, []int{}, slices.Collect(is))
+}
+
+func TestItertools_MapToSeq2(t *testing.T) {
+	is := itertools.MapToSeq2(IntRange(0, 5), func(v int) (string, int) { return strconv.Itoa(v), v })
+	assert.Equal(t, map[string]int{"0": 0, "1": 1, "2": 2, "3": 3, "4": 4}, maps.Collect(is))
+
+	is = itertools.MapToSeq2(Empty[int](), func(v int) (string, int) { return strconv.Itoa(v), v })
+	assert.Equal(t, map[string]int{}, maps.Collect(is))
 }
 
 func TestItertools_Filter(t *testing.T) {
