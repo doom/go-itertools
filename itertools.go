@@ -17,9 +17,44 @@ func FromSlice[V any](vs []V) iter.Seq[V] {
 	}
 }
 
+// FromMap returns an iterator yielding all the values from m.
+func FromMap[K comparable, V any](m map[K]V) iter.Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		for k, v := range m {
+			if !yield(k, v) {
+				return
+			}
+		}
+	}
+}
+
 // Map returns an iterator that will yield values from seq after transforming them using f.
 func Map[V any, W any](seq iter.Seq[V], f func(V) W) iter.Seq[W] {
 	return func(yield func(W) bool) {
+		for v := range seq {
+			if !yield(f(v)) {
+				return
+			}
+		}
+	}
+}
+
+// MapFromSeq2 returns an iterator that will yield values from seq after transforming them using f.
+// It is a specialization of Map for when seq is an iter.Seq2 iterator.
+func MapFromSeq2[V any, W any, X any](seq iter.Seq2[V, W], f func(V, W) X) iter.Seq[X] {
+	return func(yield func(X) bool) {
+		for v, w := range seq {
+			if !yield(f(v, w)) {
+				return
+			}
+		}
+	}
+}
+
+// MapToSeq2 returns an iterator that will yield values from seq after transforming them using f.
+// It is a specialization of Map for when the returned iterator is an iter.Seq2 iterator.
+func MapToSeq2[V any, W any, X any](seq iter.Seq[V], f func(V) (W, X)) iter.Seq2[W, X] {
+	return func(yield func(W, X) bool) {
 		for v := range seq {
 			if !yield(f(v)) {
 				return
