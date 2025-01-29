@@ -258,3 +258,105 @@ func MaxFunc[V any](seq iter.Seq[V], cmp func(V, V) int) (V, bool) {
 func Max[V cmp.Ordered](seq iter.Seq[V]) (V, bool) {
 	return MaxFunc(seq, cmp.Compare)
 }
+
+// InterleaveShortest returns an iterator that will yield values from seq1 and seq2 alternatively, starting with seq1.
+// The iterator stops after the iterator whose turn it is to produce a value is exhausted.
+func InterleaveShortest[V any](seq1, seq2 iter.Seq[V]) iter.Seq[V] {
+	return func(yield func(V) bool) {
+		seq1next, seq1stop := iter.Pull(seq1)
+		seq2next, seq2stop := iter.Pull(seq2)
+		defer seq1stop()
+		defer seq2stop()
+
+		isSeq1Turn := true
+		for {
+			var v V
+			var ok bool
+			if isSeq1Turn {
+				v, ok = seq1next()
+			} else {
+				v, ok = seq2next()
+			}
+
+			if !ok {
+				return
+			}
+
+			if !yield(v) {
+				return
+			}
+
+			isSeq1Turn = !isSeq1Turn
+		}
+	}
+}
+
+// InterleaveLongest returns an iterator that will yield values from seq1 and seq2 alternatively, starting with seq1.
+// The iterator stops after both seq1 and seq2 are exhausted.
+func InterleaveLongest[V any](seq1, seq2 iter.Seq[V]) iter.Seq[V] {
+	return func(yield func(V) bool) {
+		seq1next, seq1stop := iter.Pull(seq1)
+		seq2next, seq2stop := iter.Pull(seq2)
+		defer seq1stop()
+		defer seq2stop()
+
+		isSeq1Turn := true
+		for {
+			var v V
+			var ok bool
+			if isSeq1Turn {
+				v, ok = seq1next()
+			} else {
+				v, ok = seq2next()
+			}
+
+			if !ok {
+				break
+			}
+
+			if !yield(v) {
+				return
+			}
+
+			isSeq1Turn = !isSeq1Turn
+		}
+
+		isSeq1Turn = !isSeq1Turn
+		next := seq1next
+		if !isSeq1Turn {
+			next = seq2next
+		}
+		for v, ok := next(); ok; v, ok = next() {
+			if !yield(v) {
+				return
+			}
+		}
+	}
+}
+
+// ZipShortest returns an iterator that will yield values from seq1 and seq2 simultaneously.
+// The iterator stops after either seq1 or seq2 stops.
+func ZipShortest[V, W any](seq1 iter.Seq[V], seq2 iter.Seq[W]) iter.Seq2[V, W] {
+	return func(yield func(V, W) bool) {
+		seq1next, seq1stop := iter.Pull(seq1)
+		seq2next, seq2stop := iter.Pull(seq2)
+		defer seq1stop()
+		defer seq2stop()
+
+		for {
+			v, ok := seq1next()
+			if !ok {
+				return
+			}
+
+			w, ok := seq2next()
+			if !ok {
+				return
+			}
+
+			if !yield(v, w) {
+				return
+			}
+		}
+	}
+}

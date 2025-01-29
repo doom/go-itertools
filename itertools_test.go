@@ -2,6 +2,7 @@ package itertools_test
 
 import (
 	"iter"
+	"maps"
 	"slices"
 	"strconv"
 	"strings"
@@ -240,4 +241,76 @@ func TestItertools_MaxFunc(t *testing.T) {
 
 	_, ok = itertools.MaxFunc(Empty[string](), strings.Compare)
 	assert.Equal(t, false, ok)
+}
+
+func TestItertools_InterleaveShortest(t *testing.T) {
+	ss := itertools.InterleaveShortest(
+		itertools.FromSlice([]string{"abc", "ghi"}),
+		itertools.FromSlice([]string{"def", "jkl"}),
+	)
+	assert.Equal(t, []string{"abc", "def", "ghi", "jkl"}, slices.Collect(ss))
+
+	ss = itertools.InterleaveShortest(
+		itertools.FromSlice([]string{"abc", "ghi"}),
+		itertools.FromSlice([]string{"def"}),
+	)
+	assert.Equal(t, []string{"abc", "def", "ghi"}, slices.Collect(ss))
+
+	ss = itertools.InterleaveShortest(
+		itertools.FromSlice([]string{"abc"}),
+		itertools.FromSlice([]string{"def", "jkl"}),
+	)
+	assert.Equal(t, []string{"abc", "def"}, slices.Collect(ss))
+}
+
+func TestItertools_InterleaveLongest(t *testing.T) {
+	ss := itertools.InterleaveLongest(
+		itertools.FromSlice([]string{"abc", "ghi"}),
+		itertools.FromSlice([]string{"def", "jkl"}),
+	)
+	assert.Equal(t, []string{"abc", "def", "ghi", "jkl"}, slices.Collect(ss))
+
+	ss = itertools.InterleaveLongest(
+		itertools.FromSlice([]string{"abc", "ghi"}),
+		itertools.FromSlice([]string{"def"}),
+	)
+	assert.Equal(t, []string{"abc", "def", "ghi"}, slices.Collect(ss))
+
+	ss = itertools.InterleaveLongest(
+		itertools.FromSlice([]string{"abc"}),
+		itertools.FromSlice([]string{"def", "jkl"}),
+	)
+	assert.Equal(t, []string{"abc", "def", "jkl"}, slices.Collect(ss))
+
+	ss = itertools.InterleaveLongest(
+		itertools.FromSlice([]string{"abc", "ghi", "jkl"}),
+		itertools.FromSlice([]string{"def"}),
+	)
+	assert.Equal(t, []string{"abc", "def", "ghi", "jkl"}, slices.Collect(ss))
+}
+
+func TestItertools_ZipShortest(t *testing.T) {
+	ss := itertools.ZipShortest(
+		itertools.FromSlice([]string{"abc", "ghi"}),
+		itertools.FromSlice([]string{"def", "jkl"}),
+	)
+	assert.Equal(t, map[string]string{"abc": "def", "ghi": "jkl"}, maps.Collect(ss))
+
+	ss = itertools.ZipShortest(
+		itertools.FromSlice([]string{"abc", "ghi"}),
+		itertools.FromSlice([]string{"def"}),
+	)
+	assert.Equal(t, map[string]string{"abc": "def"}, maps.Collect(ss))
+
+	ss = itertools.ZipShortest(
+		itertools.FromSlice([]string{"abc"}),
+		itertools.FromSlice([]string{"def", "jkl"}),
+	)
+	assert.Equal(t, map[string]string{"abc": "def"}, maps.Collect(ss))
+
+	ss = itertools.ZipShortest(
+		itertools.FromSlice([]string{}),
+		itertools.FromSlice([]string{"abc", "ghi", "jkl"}),
+	)
+	assert.Equal(t, map[string]string{}, maps.Collect(ss))
 }
