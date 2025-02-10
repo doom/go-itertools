@@ -76,6 +76,23 @@ func TestItertools_Filter(t *testing.T) {
 	assert.Equal(t, []int(nil), slices.Collect(ss))
 }
 
+func TestItertools_Reduce(t *testing.T) {
+	n := itertools.Reduce(IntRange(0, 5), func(a, b int) int {
+		return a + b
+	}, 0)
+	assert.Equal(t, 0+1+2+3+4, n)
+
+	n = itertools.Reduce(IntRange(0, 5), func(a, b int) int {
+		return a + b
+	}, 123)
+	assert.Equal(t, 123+0+1+2+3+4, n)
+
+	n = itertools.Reduce(Empty[int](), func(a, b int) int {
+		return a + b
+	}, 123)
+	assert.Equal(t, 123, n)
+}
+
 func TestItertools_TakeWhile(t *testing.T) {
 	is := itertools.TakeWhile(IntRange(0, 5), func(i int) bool { return i < 3 })
 	assert.Equal(t, []int{0, 1, 2}, slices.Collect(is))

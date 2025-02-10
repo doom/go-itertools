@@ -76,6 +76,15 @@ func Filter[V any](seq iter.Seq[V], p func(V) bool) iter.Seq[V] {
 	}
 }
 
+// Reduce reduces the values yielded by seq to a single one by repeatedly applying f.
+func Reduce[V any, W any](seq iter.Seq[V], f func(W, V) W, init W) W {
+	value := init
+	for v := range seq {
+		value = f(value, v)
+	}
+	return value
+}
+
 // TakeWhile returns an iterator that will yield values from seq as long as they pass p.
 // The iterator stops when it encounters a value that does not pass p.
 func TakeWhile[V any](seq iter.Seq[V], p func(V) bool) iter.Seq[V] {
