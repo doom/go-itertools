@@ -404,3 +404,50 @@ func ZipShortest[V, W any](seq1 iter.Seq[V], seq2 iter.Seq[W]) iter.Seq2[V, W] {
 		}
 	}
 }
+
+// ChunkBy returns an iterator that groups values from seq according to key and yields those groups.
+// Consecutive elements that map to the same key are assigned to the same group.
+func ChunkBy[V any, K comparable](seq iter.Seq[V], key func(V) K) iter.Seq[iter.Seq[V]] {
+	return func(yield func(iter.Seq[V]) bool) {
+		var vs []V
+		next, stop := iter.Pull(seq)
+		defer stop()
+
+		v, ok := next()
+		if !ok {
+			return
+		}
+		vs = append(vs, v)
+		k := key(v)
+		lastK := k
+
+		for {
+			v, ok = next()
+			if !ok {
+				yield(FromSlice(vs))
+				return
+			}
+
+			k = key(v)
+			if k != lastK {
+				if !yield(FromSlice(vs)) {
+					return
+				}
+				lastK = k
+				vs = nil
+			}
+
+			vs = append(vs, v)
+		}
+	}
+}
+
+// Chunks returns an iterator that chunks values from seq into groups of size s.
+func Chunks[V any](seq iter.Seq[V], s uint) iter.Seq[iter.Seq[V]] {
+	i := uint(0)
+	return ChunkBy(seq, func(_ V) uint {
+		k := i / s
+		i++
+		return k
+	})
+}
