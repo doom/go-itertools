@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/doom/go-itertools"
 )
@@ -350,4 +351,61 @@ func TestItertools_ZipShortest(t *testing.T) {
 		itertools.FromSlice([]string{"abc", "ghi", "jkl"}),
 	)
 	assert.Equal(t, map[string]string{}, maps.Collect(ss))
+}
+
+func TestItertools_ChunkBy(t *testing.T) {
+	iss := itertools.ChunkBy(IntRange(-2, 2), func(i int) bool {
+		return i < 0
+	})
+	collected := slices.Collect(itertools.Map(iss, slices.Collect))
+	require.Equal(t, 2, len(collected))
+	require.Equal(t, []int{-2, -1}, collected[0])
+	require.Equal(t, []int{0, 1}, collected[1])
+
+	iss = itertools.ChunkBy(Empty[int](), func(i int) bool {
+		return i < 0
+	})
+	collected = slices.Collect(itertools.Map(iss, slices.Collect))
+	require.Equal(t, 0, len(collected))
+
+	iss = itertools.ChunkBy(IntRange(-2, 2), func(i int) bool {
+		return true
+	})
+	collected = slices.Collect(itertools.Map(iss, slices.Collect))
+	require.Equal(t, 1, len(collected))
+	require.Equal(t, []int{-2, -1, 0, 1}, collected[0])
+
+	iss = itertools.ChunkBy(IntRange(0, 5), func(i int) bool {
+		return i < 0
+	})
+	collected = slices.Collect(itertools.Map(iss, slices.Collect))
+	require.Equal(t, 1, len(collected))
+	require.Equal(t, []int{0, 1, 2, 3, 4}, collected[0])
+
+	iss = itertools.ChunkBy(IntRange(0, 5), func(i int) int {
+		return i
+	})
+	collected = slices.Collect(itertools.Map(iss, slices.Collect))
+	require.Equal(t, 5, len(collected))
+	for i := range 5 {
+		require.Equal(t, []int{i}, collected[i])
+	}
+
+	iss = itertools.ChunkBy(IntRange(0, 5), func(i int) int {
+		return i % 2
+	})
+	collected = slices.Collect(itertools.Map(iss, slices.Collect))
+	require.Equal(t, 5, len(collected))
+	for i := range 5 {
+		require.Equal(t, []int{i}, collected[i])
+	}
+}
+
+func TestItertools_Chunks(t *testing.T) {
+	iss := itertools.Chunks(IntRange(0, 10), 2)
+	collected := slices.Collect(itertools.Map(iss, slices.Collect))
+	require.Equal(t, 5, len(collected))
+	for i := range 5 {
+		require.Equal(t, []int{i * 2, i*2 + 1}, collected[i])
+	}
 }
