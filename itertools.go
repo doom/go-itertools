@@ -462,3 +462,27 @@ func ReverseSlice[V any](vs []V) iter.Seq[V] {
 		}
 	}
 }
+
+// IsSortedFunc reports whether values yielded by seq are sorted, comparing them using cmp.
+func IsSortedFunc[V any](seq iter.Seq[V], cmp func(V, V) int) bool {
+	next, stop := iter.Pull(seq)
+	defer stop()
+	prev, ok := next()
+	if !ok {
+		return true
+	}
+
+	for v, ok := next(); ok; v, ok = next() {
+		if cmp(prev, v) > 0 {
+			return false
+		}
+		prev = v
+	}
+
+	return true
+}
+
+// IsSorted reports whether values yielded by seq are sorted, comparing them using <.
+func IsSorted[V cmp.Ordered](seq iter.Seq[V]) bool {
+	return IsSortedFunc(seq, cmp.Compare)
+}

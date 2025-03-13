@@ -420,3 +420,12 @@ func TestItertools_ReverseSlice(t *testing.T) {
 	is = itertools.ReverseSlice([]int{1})
 	require.Equal(t, []int{1}, slices.Collect(is))
 }
+
+func TestItertools_IsSorted(t *testing.T) {
+	require.True(t, itertools.IsSorted(itertools.FromSlice([]int{0, 1, 2, 3, 4})))
+	require.False(t, itertools.IsSorted(itertools.FromSlice([]int{0, 1, 2, 5, 4})))
+	require.True(t, itertools.IsSorted(Empty[int]()))
+	require.True(t, itertools.IsSorted(itertools.FromSlice([]int{1})))
+	require.False(t, itertools.IsSorted(itertools.FromSlice([]int{1, 0})))
+	require.True(t, itertools.IsSorted(itertools.RepeatN(1, 5)))
+}
