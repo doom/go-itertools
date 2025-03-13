@@ -451,3 +451,14 @@ func Chunks[V any](seq iter.Seq[V], s uint) iter.Seq[iter.Seq[V]] {
 		return k
 	})
 }
+
+// ReverseSlice returns an iterator that will yield values from vs in reversed order/
+func ReverseSlice[V any](vs []V) iter.Seq[V] {
+	return func(yield func(V) bool) {
+		for i := len(vs) - 1; i >= 0; i-- {
+			if !yield(vs[i]) {
+				return
+			}
+		}
+	}
+}
