@@ -409,3 +409,14 @@ func TestItertools_Chunks(t *testing.T) {
 		require.Equal(t, []int{i * 2, i*2 + 1}, collected[i])
 	}
 }
+
+func TestItertools_ReverseSlice(t *testing.T) {
+	is := itertools.ReverseSlice([]int{0, 1, 2, 3, 4})
+	require.Equal(t, []int{4, 3, 2, 1, 0}, slices.Collect(is))
+
+	is = itertools.ReverseSlice([]int{})
+	require.Equal(t, []int(nil), slices.Collect(is))
+
+	is = itertools.ReverseSlice([]int{1})
+	require.Equal(t, []int{1}, slices.Collect(is))
+}
